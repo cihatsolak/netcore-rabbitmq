@@ -17,40 +17,47 @@ namespace RabbitMQ.Publisher
              * bloğu sonrası oluşturulan örnek bellekten silinir.
              */
 
-            using (var connection = connectionFactory.CreateConnection()) //Bağlantımı oluşturuyorum.
+            using (IConnection connection = connectionFactory.CreateConnection()) //Bağlantımı oluşturuyorum.
             {
-                using (var channel = connection.CreateModel()) //Bağlantımız üzerinden kanalımızı açıyoruz.
+                using (IModel channel = connection.CreateModel()) //Bağlantımız üzerinden kanalımızı açıyoruz.
                 {
                     /*
                      * queue: Kuyruğumuzun ismi
-                     * durable: false yaparsak, rabbitmq instance ımız restart atarsa mesajların hepsi gider. True yaparsak rabbitmq bunu fiziksel diske yazar.
+                     * durable: false yaparsak, rabbitmq instance ımız restart atarsa mesajların hepsi gider. True yaparsak rabbitmq bunu fiziksel diske yazar. rabbitmq yeniden başlasada mesajlar kaybolmaz.
                      * exclusive: bu kuyruğa sadece 1 tane mi kanal bağlansın yoksa başka kanallarda bağlanabilsin mi? false: diğer kanallarda bağlansın anlamına gelir.
                      * autoDelete: bir kuyrukta diyelim ki 20 tane mesaj var, eğer son mesajda kuyruktan çıkarsa yani kuyrukta mesaj kalmazsa bu kuyruk silinsin mi?
                      */
                     channel.QueueDeclare(
                          queue: "rabbitMqKuyruk",
-                         durable: false,
+                         durable: true,
                          exclusive: false,
                          autoDelete: false,
                          arguments: null
                          ); //Kuyruk oluşturalım.
 
-                    string message = "RabbitMQ Deneme Mesajı";
-                    var bodyByte = Encoding.UTF8.GetBytes(message); //mesajlarımızı byte olarak göndermeliyiz.
+                    string message = "RabbitMQ Deneme Mesaj";
 
-                    /*
-                     * exchange: boş bırakırsanız default exchange anlamına geliyor.
-                     * routingKey: default exchange kullanıyorsanız routing key, kuyruk isminiz ile aynı olmalıdır. (Kuyruk ile mesajı birbirine bağlıyoruz.)
-                     * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
-                     */
-                    channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
-                        exchange: string.Empty,
-                        routingKey: "rabbitMqKuyruk",
-                        basicProperties: null,
-                        body: bodyByte
-                        );
+                    for (int index = 0; index < 10; index++) //Örnek olarak 10 adet mesaj göndermek için
+                    {
+                        byte[] bodyByte = Encoding.UTF8.GetBytes($"No:{index} Message:{message}"); //mesajlarımızı byte olarak göndermeliyiz.
+                        
+                        IBasicProperties properties = channel.CreateBasicProperties();
+                        properties.Persistent = true; //Mesajımızın herhangi bir durumda silinmemesi için
 
-                    Console.WriteLine("Mesajınız kuyruğa gönderilmiştir.");
+                        /*
+                         * exchange: boş bırakırsanız default exchange anlamına geliyor.
+                         * routingKey: default exchange kullanıyorsanız routing key, kuyruk isminiz ile aynı olmalıdır. (Kuyruk ile mesajı birbirine bağlıyoruz.)
+                         * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
+                         */
+                        channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
+                            exchange: string.Empty,
+                            routingKey: "rabbitMqKuyruk",
+                            basicProperties: properties,
+                            body: bodyByte
+                            );
+
+                        Console.WriteLine("Mesajınız kuyruğa gönderilmiştir.");
+                    }
                 }
 
                 Console.ReadKey();

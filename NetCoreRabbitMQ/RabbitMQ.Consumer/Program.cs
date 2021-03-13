@@ -32,11 +32,18 @@ namespace RabbitMQ.Consumer
                     */
                     channel.QueueDeclare(
                          queue: "rabbitMqKuyruk",
-                         durable: false,
+                         durable: true,
                          exclusive: false,
                          autoDelete: false,
                          arguments: null
                          ); //Kuyruk oluşturalım. (Publisher'daki kuyruk ile birebir aynı.)
+
+                    //Oluşturduğum kanalın özelliklerini belirtiyorum.
+                    channel.BasicQos(
+                        prefetchSize: 0,  //Gelen mesajın boyutuyla ilgilenmiyorum
+                        prefetchCount: 1, //Gelen mesajı consumerlar arasında 1-1 dağıt. 1 ona 1 ona şeklinde. Eğer 2 yazarsam tek seferde 2 adet mesaj(iş) gelir.
+                        global: false   // prefetchCounta 10 atadığımızı consumer adedimizinde 3 tane olduğunu düşünelim. Eğer global'i false işaretlersem 3 consumer'da ayrı ayrı 10 görev alır, eğer true dersem 3 consumer toplamda 10 adet iş alır.
+                        );
 
                     var eventingBasicConsumer = new EventingBasicConsumer(channel); //Oluşturduğum kanalı dinle diyorum.
 
@@ -46,7 +53,7 @@ namespace RabbitMQ.Consumer
                      */
                     channel.BasicConsume(
                         queue: "rabbitMqKuyruk", //Dinlecek kuyruk ismi
-                        autoAck: true, //True verdiğimiz için işlemi doğru ya da yanlış farketmez denedikten sonra kuyruktan silecektir.
+                        autoAck: true, //True: işlemi doğru ya da yanlış farketmez denedikten sonra kuyruktan silecektir. False: ben işlemin bittiğini sana söyleyeceğim. sana söyledikten sonra silersin.
                         consumer: eventingBasicConsumer
                         );
 
@@ -54,6 +61,12 @@ namespace RabbitMQ.Consumer
                     { 
                         var bodyByte = basicDeliverEventArgs.Body.ToArray(); //Publisher tarafından göndermiş olduğum mesajı alıyorum.
                         var message = Encoding.UTF8.GetString(bodyByte);
+
+                        //işlendi bildirimi gönderiyoruz. Bu bilgiyi göndermediğimizde bir sonraki mesajı bu consumer'a iletmez.
+                        channel.BasicAck(
+                            deliveryTag: basicDeliverEventArgs.DeliveryTag, //İşlemi tamamladım bildirimi gönderiyorum. Yeni bir mesaj alabilirim.
+                            multiple: false //tüm işlemler için değil sadece bu işlem için
+                            );
 
                         Console.WriteLine("Mesaj Alındı: {0}", message);
                     };

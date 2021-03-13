@@ -11,6 +11,7 @@ namespace RabbitMQ.Consumer
         {
             ConnectionFactory connectionFactory = new ConnectionFactory(); //RabbitMQ'e bağlanmak için
             connectionFactory.Uri = new Uri("amqps://tgvevtgl:0p-IZaJpup2kAp33W3QyTc0liO1Gi4Qf@moose.rmq.cloudamqp.com/tgvevtgl"); //Cloud ortamından altığım url adresi
+            //connectionFactory.HostName = "localhost";  Localhost üzerinden bağlanmak istersek.
 
             /* Nedir using?
              * using -> class dan nesne örneği oluşturursanız ve o nesne IDisposable interface'ine sahipse using

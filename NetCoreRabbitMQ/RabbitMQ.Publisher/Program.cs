@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RabbitMQ.Publisher
@@ -28,57 +29,40 @@ namespace RabbitMQ.Publisher
                      * type: Exchange tipi
                      */
                     channel.ExchangeDeclare(
-                        exchange: "topic-exchange",
+                        exchange: "header-exchange",
                         durable: true,
-                        type: ExchangeType.Topic
+                        type: ExchangeType.Headers
                         );
 
-                    for (int index = 0; index < 10; index++) //Örnek olarak 10 adet mesaj göndermek için
-                    {
-                        string randomRoutingKey = GetRandomRoutingKey(); //rastgele bir routingKey üretiyorum.
+                    Dictionary<string, object> headers = new Dictionary<string, object>();
+                    headers.Add("format", ".pdf");
+                    headers.Add("shape", "a4");
+                    headers.Add("x-match", "all"); //consumer tarafında header birebir uyuşsun.
+                    //headers.Add("x-match", "any"); //consumer tarafında headerdan 1 tanesi uyuşssa yeterli.
 
-                        byte[] bodyByte = Encoding.UTF8.GetBytes($"Log: {randomRoutingKey}"); //mesajlarımızı byte olarak göndermeliyiz.
+                    IBasicProperties properties = channel.CreateBasicProperties();
+                    properties.Persistent = true; //Mesajımızın herhangi bir durumda silinmemesi için
+                    properties.Headers = headers; //exchange tipi header oldugu için belirlediğim header dictionary'sini veriyorum.
 
-                        IBasicProperties properties = channel.CreateBasicProperties();
-                        properties.Persistent = true; //Mesajımızın herhangi bir durumda silinmemesi için
+                    byte[] bodyByte = Encoding.UTF8.GetBytes("Header Mesajım"); //mesajlarımızı byte olarak göndermeliyiz.
 
-                        /*
-                         * exchange: Yukarıda tanımladığım exchange ismini gönder yayınlıyorum.
-                         * routingKey: direct-exchange de routeKey verilir. Consumer tarafında da routeKey aynı olan consumer'la aralarında iletişim kurarlar.
-                         * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
-                         */
-                        channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
-                            exchange: "topic-exchange",
-                            routingKey: randomRoutingKey,
-                            basicProperties: properties,
-                            body: bodyByte
-                            );
+                    /*
+                     * exchange: Yukarıda tanımladığım exchange ismini gönder yayınlıyorum.
+                     * routingKey: direct-exchange de routeKey verilir. Consumer tarafında da routeKey aynı olan consumer'la aralarında iletişim kurarlar.
+                     * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
+                     */
+                    channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
+                        exchange: "header-exchange",
+                        routingKey: string.Empty,
+                        basicProperties: properties,
+                        body: bodyByte
+                        );
 
-                        Console.WriteLine("Log mesajı gönderilmiştir: Message:{0}", randomRoutingKey);
-                    }
+                    Console.WriteLine("Header mesajı gönderilmiştir");
                 }
                 Console.WriteLine("Çıkış yapmak için tıklayınız..");
                 Console.ReadKey();
             }
-        }
-
-        /// <summary>
-        /// Rastgele bir routingKey üretiyorum.
-        /// </summary>
-        /// <returns>routing Key</returns>
-        static string GetRandomRoutingKey()
-        {
-            Array logs = Enum.GetValues(typeof(Log));
-
-            Random random = new Random();
-
-            Log log1 = (Log)logs.GetValue(random.Next(logs.Length));
-            Log log2 = (Log)logs.GetValue(random.Next(logs.Length));
-            Log log3 = (Log)logs.GetValue(random.Next(logs.Length));
-
-            string routingKey = $"{log1}.{log2}.{log3}";
-
-            return routingKey;
         }
     }
 }

@@ -1,4 +1,4 @@
-# Net Core RabbitMQ
+# Net Core - RabbitMQ
 
 ## Nedir?
 

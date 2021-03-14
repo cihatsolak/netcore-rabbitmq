@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -30,9 +31,9 @@ namespace RabbitMQ.Consumer
                       * type: Exchange tipi
                       */
                     channel.ExchangeDeclare(
-                        exchange: "messages",
+                        exchange: "direct-exchange",
                         durable: true,
-                        type: ExchangeType.Fanout
+                        type: ExchangeType.Direct
                         );
 
                     /*
@@ -41,16 +42,20 @@ namespace RabbitMQ.Consumer
                      */
                     var queueName = channel.QueueDeclare().QueueName; //Random kuyruk ismi oluşturuyorum.
 
-                    /*
-                     * Random oluşturduğum kuyruk ismini kuyruğa bind ediyorum ve exchange ile ilişklendiriyorum.
-                     * queue : Kuyruk adı
-                     * exchange: Exchange adı
-                     */
-                    channel.QueueBind(
-                        queue: queueName,
-                        exchange: "messages",
-                        routingKey: ""
-                        );
+                    foreach (var log in Enum.GetNames(typeof(Log))) //2 adet log tipini(critical ve error) routeKey olarak belirliyorum. Publisher tarafından gelen 5 log tipinden sadece critical ve error olanları karşılayacağım
+                    {
+                         /*
+                         * Random oluşturduğum kuyruk ismini kuyruğa bind ediyorum ve exchange ile ilişklendiriyorum.
+                         * queue : Kuyruk adı
+                         * exchange: Exchange adı
+                         * routeKey: gönderilecek yol adı
+                         */
+                        channel.QueueBind(
+                            queue: queueName,
+                            exchange: "direct-exchange",
+                            routingKey: log.ToString()
+                            );
+                    }
 
                     //Oluşturduğum kanalın özelliklerini belirtiyorum.
                     channel.BasicQos(
@@ -59,7 +64,7 @@ namespace RabbitMQ.Consumer
                         global: false   // prefetchCounta 10 atadığımızı consumer adedimizinde 3 tane olduğunu düşünelim. Eğer global'i false işaretlersem 3 consumer'da ayrı ayrı 10 görev alır, eğer true dersem 3 consumer toplamda 10 adet iş alır.
                         );
 
-                    Console.WriteLine("Mesajlar bekleniyor..");
+                    Console.WriteLine("Critical ve Error Loglar bekleniyor..");
 
                     var eventingBasicConsumer = new EventingBasicConsumer(channel); //Oluşturduğum kanalı dinle diyorum.
 
@@ -75,14 +80,17 @@ namespace RabbitMQ.Consumer
 
                     eventingBasicConsumer.Received += (model, basicDeliverEventArgs) =>
                     { 
-                        var bodyByte = basicDeliverEventArgs.Body.ToArray(); //Publisher tarafından göndermiş olduğum mesajı alıyorum.
-                        var message = Encoding.UTF8.GetString(bodyByte);
-                        Console.WriteLine("Mesaj Alındı: {0}", message);
+                        byte[] bodyByte = basicDeliverEventArgs.Body.ToArray(); //Publisher tarafından göndermiş olduğum mesajı alıyorum.
+                        string log = Encoding.UTF8.GetString(bodyByte);
+                        Console.WriteLine("Log Alındı: {0}", log);
 
                         //Sanal bir ortam oluşturyorum. Gerçek dünya senaryosu olsun diye atıyorum bu mesajı 100 milisaniyede işlediğim diye bir örnek oluşturabilmek için.
                         int milliSecond = GetMilliSecondTimeOut(args);
                         Thread.Sleep(milliSecond);
-                        Console.WriteLine("Mesajlar Alım Bitti.");
+                        
+                        WritetoFile(log); //Gelen log'u txt dosyasına yazıyorum.
+
+                        Console.WriteLine("Loglama Bitti.");
 
                         //işlendi bildirimi gönderiyoruz. Bu bilgiyi göndermediğimizde bir sonraki mesajı bu consumer'a iletmez.
                         channel.BasicAck(
@@ -102,6 +110,12 @@ namespace RabbitMQ.Consumer
             var asd = args[0].ToString();
             //powershell üzerinden uygulamaya bir milisaniye parametresi göndereceğim.
             return int.Parse(args[0]);
+        }
+
+        //Gelen log mesajlarını txt dosyasına yaz.
+        static void WritetoFile(string log)
+        {
+            File.AppendAllText("log_critical_error.txt", log + "\n");
         }
     }
 }

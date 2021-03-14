@@ -28,33 +28,35 @@ namespace RabbitMQ.Publisher
                      * type: Exchange tipi
                      */
                     channel.ExchangeDeclare(
-                        exchange: "messages",
+                        exchange: "direct-exchange",
                         durable: true,
-                        type: ExchangeType.Fanout
+                        type: ExchangeType.Direct
                         );
 
-                    string message = GetMessage(args); //powershell üzerinden göndereceğim.
+                    
 
                     for (int index = 0; index < 10; index++) //Örnek olarak 10 adet mesaj göndermek için
                     {
-                        byte[] bodyByte = Encoding.UTF8.GetBytes($"No:{index} Message:{message}"); //mesajlarımızı byte olarak göndermeliyiz.
+                        Log log = GetRandomLog(); //log'un türünü random olarak ayarlıyorum.
+
+                        byte[] bodyByte = Encoding.UTF8.GetBytes($"Log: {log.ToString()}"); //mesajlarımızı byte olarak göndermeliyiz.
 
                         IBasicProperties properties = channel.CreateBasicProperties();
                         properties.Persistent = true; //Mesajımızın herhangi bir durumda silinmemesi için
 
                         /*
                          * exchange: Yukarıda tanımladığım exchange ismini gönder yayınlıyorum.
-                         * routingKey: exchange belirlediğimiz zaman routingKey vermeyiz. Çünkü exchange'e abone olan herkese gönderilen data gidicek. Yani bir yönlendirme yapmıyoruz şu kuyruğa git yada buna git gibi.
+                         * routingKey: direct-exchange de routeKey verilir. Consumer tarafında da routeKey aynı olan consumer'la aralarında iletişim kurarlar.
                          * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
                          */
                         channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
-                            exchange: "messages",
-                            routingKey: "",
+                            exchange: "direct-exchange",
+                            routingKey: log.ToString(),
                             basicProperties: properties,
                             body: bodyByte
                             );
 
-                        Console.WriteLine("Mesajınız gönderilmiştir: Message:{0} , Index:{1}", message, index);
+                        Console.WriteLine("Log mesajı gönderilmiştir: Message:{0}", log.ToString());
                     }
                 }
                 Console.WriteLine("Çıkış yapmak için tıklayınız..");
@@ -62,10 +64,12 @@ namespace RabbitMQ.Publisher
             }
         }
 
-        static string GetMessage(string[] args)
+        static Log GetRandomLog()
         {
-            //powershell üzerinden uygulamaya bir mesaj parametresi göndereceğim.
-            return args[0].ToString();
+            Array logNames = Enum.GetValues(typeof(Log));
+            int random = new Random().Next(logNames.Length);
+
+           return (Log)logNames.GetValue(random);
         }
     }
 }

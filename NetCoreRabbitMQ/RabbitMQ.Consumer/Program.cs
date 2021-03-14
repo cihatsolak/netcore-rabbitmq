@@ -31,9 +31,9 @@ namespace RabbitMQ.Consumer
                       * type: Exchange tipi
                       */
                     channel.ExchangeDeclare(
-                        exchange: "direct-exchange",
+                        exchange: "topic-exchange",
                         durable: true,
-                        type: ExchangeType.Direct
+                        type: ExchangeType.Topic
                         );
 
                     /*
@@ -41,6 +41,9 @@ namespace RabbitMQ.Consumer
                      * Consumer ayağa kalktıgında farklı farklı kuyruklar oluşssun hep aynı kuyruk oluşmaması için random kuyruk ismi oluşssun istiyorum.
                      */
                     var queueName = channel.QueueDeclare().QueueName; //Random kuyruk ismi oluşturuyorum.
+
+                    // string customRoutingKey = "Info.*.Warning"; //başı info sonu warning olan ortasının ne oldugunun önemi olmayan
+                    string customRoutingKey = "#.Warning"; //başı ne olursa olsun sonu warning ile biten
 
                     foreach (var log in Enum.GetNames(typeof(Log))) //2 adet log tipini(critical ve error) routeKey olarak belirliyorum. Publisher tarafından gelen 5 log tipinden sadece critical ve error olanları karşılayacağım
                     {
@@ -52,8 +55,8 @@ namespace RabbitMQ.Consumer
                          */
                         channel.QueueBind(
                             queue: queueName,
-                            exchange: "direct-exchange",
-                            routingKey: log.ToString()
+                            exchange: "topic-exchange",
+                            routingKey: customRoutingKey
                             );
                     }
 
@@ -64,7 +67,7 @@ namespace RabbitMQ.Consumer
                         global: false   // prefetchCounta 10 atadığımızı consumer adedimizinde 3 tane olduğunu düşünelim. Eğer global'i false işaretlersem 3 consumer'da ayrı ayrı 10 görev alır, eğer true dersem 3 consumer toplamda 10 adet iş alır.
                         );
 
-                    Console.WriteLine("Critical ve Error Loglar bekleniyor..");
+                    Console.WriteLine("Custom Loglar bekleniyor..");
 
                     var eventingBasicConsumer = new EventingBasicConsumer(channel); //Oluşturduğum kanalı dinle diyorum.
 

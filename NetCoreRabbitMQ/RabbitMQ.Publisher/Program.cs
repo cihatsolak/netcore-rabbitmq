@@ -28,18 +28,16 @@ namespace RabbitMQ.Publisher
                      * type: Exchange tipi
                      */
                     channel.ExchangeDeclare(
-                        exchange: "direct-exchange",
+                        exchange: "topic-exchange",
                         durable: true,
-                        type: ExchangeType.Direct
+                        type: ExchangeType.Topic
                         );
-
-                    
 
                     for (int index = 0; index < 10; index++) //Örnek olarak 10 adet mesaj göndermek için
                     {
-                        Log log = GetRandomLog(); //log'un türünü random olarak ayarlıyorum.
+                        string randomRoutingKey = GetRandomRoutingKey(); //rastgele bir routingKey üretiyorum.
 
-                        byte[] bodyByte = Encoding.UTF8.GetBytes($"Log: {log.ToString()}"); //mesajlarımızı byte olarak göndermeliyiz.
+                        byte[] bodyByte = Encoding.UTF8.GetBytes($"Log: {randomRoutingKey}"); //mesajlarımızı byte olarak göndermeliyiz.
 
                         IBasicProperties properties = channel.CreateBasicProperties();
                         properties.Persistent = true; //Mesajımızın herhangi bir durumda silinmemesi için
@@ -50,13 +48,13 @@ namespace RabbitMQ.Publisher
                          * body: göndereceğimiz mesaj. (mesajlar her zaman byte türünde olmalıdır.)
                          */
                         channel.BasicPublish( // Kuyruğa mesajı gönderiyoruz.
-                            exchange: "direct-exchange",
-                            routingKey: log.ToString(),
+                            exchange: "topic-exchange",
+                            routingKey: randomRoutingKey,
                             basicProperties: properties,
                             body: bodyByte
                             );
 
-                        Console.WriteLine("Log mesajı gönderilmiştir: Message:{0}", log.ToString());
+                        Console.WriteLine("Log mesajı gönderilmiştir: Message:{0}", randomRoutingKey);
                     }
                 }
                 Console.WriteLine("Çıkış yapmak için tıklayınız..");
@@ -64,12 +62,23 @@ namespace RabbitMQ.Publisher
             }
         }
 
-        static Log GetRandomLog()
+        /// <summary>
+        /// Rastgele bir routingKey üretiyorum.
+        /// </summary>
+        /// <returns>routing Key</returns>
+        static string GetRandomRoutingKey()
         {
-            Array logNames = Enum.GetValues(typeof(Log));
-            int random = new Random().Next(logNames.Length);
+            Array logs = Enum.GetValues(typeof(Log));
 
-           return (Log)logNames.GetValue(random);
+            Random random = new Random();
+
+            Log log1 = (Log)logs.GetValue(random.Next(logs.Length));
+            Log log2 = (Log)logs.GetValue(random.Next(logs.Length));
+            Log log3 = (Log)logs.GetValue(random.Next(logs.Length));
+
+            string routingKey = $"{log1}.{log2}.{log3}";
+
+            return routingKey;
         }
     }
 }

@@ -9,3 +9,6 @@ Log: Critical
 Log: Error
 Log: Error
 Log: Critical
+Log: Info.Error.Warning
+Log: Info.Warning.Warning
+Log: Info.Info.Warning

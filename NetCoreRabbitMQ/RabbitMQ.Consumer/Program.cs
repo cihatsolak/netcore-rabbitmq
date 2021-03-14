@@ -2,10 +2,11 @@
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using System.Threading;
 
 namespace RabbitMQ.Consumer
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -22,21 +23,34 @@ namespace RabbitMQ.Consumer
             {
                 using (var channel = connection.CreateModel()) //Bağlantımız üzerinden kanalımızı açıyoruz.
                 {
-                    // PUBLISHER(gönderici) tarafındaki kuyruk ile CONSUMER(tüketici) tarafındaki kuyruk ismi ve parametreler birebir aynı olmalıdır. Aksi halde eşleşmez ve mesajları alamayız.
+                     /* Mesajları direk kuyruğa değil bir exchange'e gönderiyorum.
+                      * 
+                      * exchange: Exchange İsmi
+                      * durable: false yaparsak, rabbitmq instance ımız restart atarsa mesajların hepsi gider. True yaparsak rabbitmq bunu fiziksel diske yazar.
+                      * type: Exchange tipi
+                      */
+                    channel.ExchangeDeclare(
+                        exchange: "messages",
+                        durable: true,
+                        type: ExchangeType.Fanout
+                        );
 
                     /*
-                    * queue: Kuyruğumuzun ismi
-                    * durable: false yaparsak, rabbitmq instance ımız restart atarsa mesajların hepsi gider. True yaparsak rabbitmq bunu fiziksel diske yazar.
-                    * exclusive: bu kuyruğa sadece 1 tane mi kanal bağlansın yoksa başka kanallarda bağlanabilsin mi? false: diğer kanallarda bağlansın anlamına gelir.
-                    * autoDelete: bir kuyrukta diyelim ki 20 tane mesaj var, eğer son mesajda kuyruktan çıkarsa yani kuyrukta mesaj kalmazsa bu kuyruk silinsin mi?
-                    */
-                    channel.QueueDeclare(
-                         queue: "rabbitMqKuyruk",
-                         durable: true,
-                         exclusive: false,
-                         autoDelete: false,
-                         arguments: null
-                         ); //Kuyruk oluşturalım. (Publisher'daki kuyruk ile birebir aynı.)
+                     * İstekleri artık bir exchange'e göndereceğimiz için kuyruk oluşmaz. Ne zamanki Consumer yani tüketici ayağa kalkarsa o zaman bir kuyruk oluşur.
+                     * Consumer ayağa kalktıgında farklı farklı kuyruklar oluşssun hep aynı kuyruk oluşmaması için random kuyruk ismi oluşssun istiyorum.
+                     */
+                    var queueName = channel.QueueDeclare().QueueName; //Random kuyruk ismi oluşturuyorum.
+
+                    /*
+                     * Random oluşturduğum kuyruk ismini kuyruğa bind ediyorum ve exchange ile ilişklendiriyorum.
+                     * queue : Kuyruk adı
+                     * exchange: Exchange adı
+                     */
+                    channel.QueueBind(
+                        queue: queueName,
+                        exchange: "messages",
+                        routingKey: ""
+                        );
 
                     //Oluşturduğum kanalın özelliklerini belirtiyorum.
                     channel.BasicQos(
@@ -45,6 +59,8 @@ namespace RabbitMQ.Consumer
                         global: false   // prefetchCounta 10 atadığımızı consumer adedimizinde 3 tane olduğunu düşünelim. Eğer global'i false işaretlersem 3 consumer'da ayrı ayrı 10 görev alır, eğer true dersem 3 consumer toplamda 10 adet iş alır.
                         );
 
+                    Console.WriteLine("Mesajlar bekleniyor..");
+
                     var eventingBasicConsumer = new EventingBasicConsumer(channel); //Oluşturduğum kanalı dinle diyorum.
 
                     /*
@@ -52,8 +68,8 @@ namespace RabbitMQ.Consumer
                      * örneğin bir resim işleyeceğiz ve hata aldık, hata aldığımzda kuyruktan silinmesin, ne zamanki işlemi başarıyla tamamlarız o zaman silinsin.
                      */
                     channel.BasicConsume(
-                        queue: "rabbitMqKuyruk", //Dinlecek kuyruk ismi
-                        autoAck: true, //True: işlemi doğru ya da yanlış farketmez denedikten sonra kuyruktan silecektir. False: ben işlemin bittiğini sana söyleyeceğim. sana söyledikten sonra silersin.
+                        queue: queueName, //Dinlecek kuyruk ismi
+                        autoAck: false, //True: işlemi doğru ya da yanlış farketmez denedikten sonra kuyruktan silecektir. False: ben işlemin bittiğini sana söyleyeceğim. sana söyledikten sonra silersin.
                         consumer: eventingBasicConsumer
                         );
 
@@ -61,20 +77,31 @@ namespace RabbitMQ.Consumer
                     { 
                         var bodyByte = basicDeliverEventArgs.Body.ToArray(); //Publisher tarafından göndermiş olduğum mesajı alıyorum.
                         var message = Encoding.UTF8.GetString(bodyByte);
+                        Console.WriteLine("Mesaj Alındı: {0}", message);
+
+                        //Sanal bir ortam oluşturyorum. Gerçek dünya senaryosu olsun diye atıyorum bu mesajı 100 milisaniyede işlediğim diye bir örnek oluşturabilmek için.
+                        int milliSecond = GetMilliSecondTimeOut(args);
+                        Thread.Sleep(milliSecond);
+                        Console.WriteLine("Mesajlar Alım Bitti.");
 
                         //işlendi bildirimi gönderiyoruz. Bu bilgiyi göndermediğimizde bir sonraki mesajı bu consumer'a iletmez.
                         channel.BasicAck(
                             deliveryTag: basicDeliverEventArgs.DeliveryTag, //İşlemi tamamladım bildirimi gönderiyorum. Yeni bir mesaj alabilirim.
                             multiple: false //tüm işlemler için değil sadece bu işlem için
                             );
-
-                        Console.WriteLine("Mesaj Alındı: {0}", message);
                     };
+
+                    Console.WriteLine("Çıkış yapmak tıklayınız..");
+                    Console.ReadLine();
                 }
-
-                Console.ReadKey();
             }
+        }
 
+        static int GetMilliSecondTimeOut(string[] args)
+        {
+            var asd = args[0].ToString();
+            //powershell üzerinden uygulamaya bir milisaniye parametresi göndereceğim.
+            return int.Parse(args[0]);
         }
     }
 }

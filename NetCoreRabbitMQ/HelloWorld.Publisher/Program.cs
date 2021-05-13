@@ -6,6 +6,10 @@ namespace HelloWorld.Publisher
 {
     class Program
     {
+        /// <summary>
+        /// Publisher: Direk kuyruğa veya exchange'e mesaj gönderendir.
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             var connectionFactory = new ConnectionFactory

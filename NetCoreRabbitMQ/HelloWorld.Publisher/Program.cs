@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Linq;
 using System.Text;
 
 namespace HelloWorld.Publisher
@@ -31,14 +32,18 @@ namespace HelloWorld.Publisher
             string message = "Hello World!";
             byte[] messageBody = Encoding.UTF8.GetBytes(message); //Rabbitmq byte[] dizisi kabul eder.
 
-            channel.BasicPublish(
-                exchange: string.Empty, //Kuyruk kullanmıyorum
+            Enumerable.Range(0, 50).ToList().ForEach(p => //Kuyruga 50 adet mesaj gönder
+            {
+                channel.BasicPublish(
+                exchange: string.Empty, //Exchange kullanmıyorum, direk kuyruğa gönderiyorum
                 routingKey: "hello-queue", //Exchange kullanmadığım için yukarıda tanımladığım kuyruğun ismini verdim.(zorunlu)
                 basicProperties: null,
                 body: messageBody //Gönderilecek mesaj
                 );
 
-            Console.WriteLine("Mesaj gönderilmiştir...");
+                Console.WriteLine("Mesaj gönderilmiştir...");
+            });
+            
             Console.ReadKey();
         }
     }

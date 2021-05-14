@@ -119,7 +119,7 @@ namespace WebPublisher.Controllers
 
             //Kanal'ın özellikleri
             IBasicProperties basicProperties = channel.CreateBasicProperties();
-            basicProperties.Persistent = true;
+            basicProperties.Persistent = true; // Mesajımızın herhangi bir durumda silinmemesi için (rabbitmq restart attıgında vs)
 
             //Kanalı yayınlıyorum
             channel.BasicPublish(

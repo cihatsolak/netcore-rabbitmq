@@ -39,6 +39,7 @@ namespace HeaderExchange.Publisher
             //Yukarıda oluştuduğum header'ı ekliyorum.
             IBasicProperties basicProperties = channel.CreateBasicProperties();
             basicProperties.Headers = header;
+            basicProperties.Persistent = true; //rabbitmq restart atarsa mesajlarım saklansın silinmesin.
 
             channel.BasicPublish(
                   exchange: "vehicles-header", //yukarıda tanımladığım exchange ismini veriyorum

@@ -19,9 +19,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetFiveVersion", "NetFiveVe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HelloWorldApps", "HelloWorldApps", "{F50712F5-E172-481A-9FF7-68751726959E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld.Publisher", "HelloWorld.Publisher\HelloWorld.Publisher.csproj", "{F1FB6A3C-8906-4D16-8F4D-D49B6F3F8CF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorld.Publisher", "HelloWorld.Publisher\HelloWorld.Publisher.csproj", "{F1FB6A3C-8906-4D16-8F4D-D49B6F3F8CF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld.Subscriber", "HelloWorld.Subscriber\HelloWorld.Subscriber.csproj", "{FF16D789-557C-45D2-B771-2A6B57CDC9F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorld.Subscriber", "HelloWorld.Subscriber\HelloWorld.Subscriber.csproj", "{FF16D789-557C-45D2-B771-2A6B57CDC9F7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExchangeTypes", "ExchangeTypes", "{4E2F0B86-CAD3-4434-8538-F93847602868}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FanoutExchange.Publisher", "FanoutExchange.Publisher\FanoutExchange.Publisher.csproj", "{47A8E326-6645-48EB-858D-A2E906EEDEB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FanoutExchange.Subscriber", "FanoutExchange.Subscriber\FanoutExchange.Subscriber.csproj", "{B7156EE1-D181-46B1-8562-EAB59F26CF55}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Fanout", "Fanout", "{3CAB6F5E-8D39-4CE7-9909-00242DF2456F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +61,14 @@ Global
 		{FF16D789-557C-45D2-B771-2A6B57CDC9F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF16D789-557C-45D2-B771-2A6B57CDC9F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF16D789-557C-45D2-B771-2A6B57CDC9F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47A8E326-6645-48EB-858D-A2E906EEDEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47A8E326-6645-48EB-858D-A2E906EEDEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47A8E326-6645-48EB-858D-A2E906EEDEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47A8E326-6645-48EB-858D-A2E906EEDEB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7156EE1-D181-46B1-8562-EAB59F26CF55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7156EE1-D181-46B1-8562-EAB59F26CF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7156EE1-D181-46B1-8562-EAB59F26CF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7156EE1-D181-46B1-8562-EAB59F26CF55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,6 +81,10 @@ Global
 		{F50712F5-E172-481A-9FF7-68751726959E} = {0D5A056F-1789-4CCD-ABDA-09C964D2F294}
 		{F1FB6A3C-8906-4D16-8F4D-D49B6F3F8CF2} = {F50712F5-E172-481A-9FF7-68751726959E}
 		{FF16D789-557C-45D2-B771-2A6B57CDC9F7} = {F50712F5-E172-481A-9FF7-68751726959E}
+		{4E2F0B86-CAD3-4434-8538-F93847602868} = {0D5A056F-1789-4CCD-ABDA-09C964D2F294}
+		{47A8E326-6645-48EB-858D-A2E906EEDEB3} = {3CAB6F5E-8D39-4CE7-9909-00242DF2456F}
+		{B7156EE1-D181-46B1-8562-EAB59F26CF55} = {3CAB6F5E-8D39-4CE7-9909-00242DF2456F}
+		{3CAB6F5E-8D39-4CE7-9909-00242DF2456F} = {4E2F0B86-CAD3-4434-8538-F93847602868}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AF452A42-344B-4D5E-B499-4F3B1CA52C94}

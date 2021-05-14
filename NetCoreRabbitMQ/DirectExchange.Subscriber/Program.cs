@@ -27,8 +27,8 @@ namespace DirectExchange.Subscriber
                 prefetchSize: 0, //Herhangi bir boyuttaki mesajı gönderebilirsin
                 prefetchCount: 1, // Mesajları 1-1 işleyeceğim. 2 verirsem 2'şer 2şer alım yapar.
                 /// <global>
-                /// TRUE: prefetchCount=6 dersem ve 3 subscriberım varsa, 6/3=2 yani her bir subcriber'a 2 adet mesajı tek seferde iletir.
-                /// FALSE: prefetchCount=6 dersem ve 3 subscriberım varsa, her bir subscriber'a 6 mesaj göndermeye çalışır. 3x6 = 18 mesaj gibi. 
+                /// TRUE: prefetchCount=6 dersem ve 3 subscriberım varsa, 6/3=2 yani her bir subcriber'a 2 adet mesajı tek seferde iletir. Diğer bir deyişle her mesaj gönderiminde toplamda 6 adet mesaj consumerlar arasında paylaştırılır.
+                /// FALSE: prefetchCount=6 dersem ve 3 subscriberım varsa, her seferinde her bir subscriber'a 6 mesaj göndermeye çalışır.  
                 /// </global>
                 global: false
                 );

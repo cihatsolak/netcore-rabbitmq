@@ -55,7 +55,7 @@ namespace TopicExchange.Publisher
 
                 channel.BasicPublish(
                     exchange: "vehicles-topic", //yukarıda tanımladığım exchange ismini veriyorum
-                    routingKey: routeKey, //Direct exchange'e gelen mesajlar belirlediğim key değerlerine göre kuyruklara dağıtılsın.
+                    routingKey: routeKey, //topic exchange'e gelen mesajlar belirlediğim key değerlerine göre kuyruklara dağıtılsın.
                     basicProperties: null,
                     body: messageBody //Gönderilecek mesaj
                     );
@@ -65,7 +65,5 @@ namespace TopicExchange.Publisher
 
             Console.ReadKey();
         }
-
-
     }
 }

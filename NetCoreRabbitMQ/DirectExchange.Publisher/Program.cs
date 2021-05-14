@@ -20,7 +20,7 @@ namespace DirectExchange.Publisher
     {
         /// <summary>
         /// Publisher: Direct exchange'e mesaj gönderendir.
-        /// Bu örnekde direk kuyruk oluşturmayıp exchange oluşturuyorum ve mesajları exchange gönderiyorum. Kuyruğu subscriber tarafında oluşturacağım.(performans)
+        /// Bu örnekde kuyruğu burada yani publisher'da oluşturuyorum. İlgili kuyruk ismine göre subscriber mesajları alabilir.
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)

@@ -22,8 +22,7 @@ namespace Watermark.WebPublisher.BackgroundServices
 
         public ImageWatermakProcessBackgroundService(
             ILogger<ImageWatermakProcessBackgroundService> logger,
-            RabbitMQClientService rabbitMQClientService,
-            IModel channel)
+            RabbitMQClientService rabbitMQClientService)
         {
             _logger = logger;
             _rabbitMQClientService = rabbitMQClientService;
@@ -39,7 +38,7 @@ namespace Watermark.WebPublisher.BackgroundServices
                 global: false
                 );
 
-            return base.StopAsync(cancellationToken);
+            return base.StartAsync(cancellationToken);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,7 +73,7 @@ namespace Watermark.WebPublisher.BackgroundServices
                 using var image = Image.FromFile(imagePath);
                 using var graphic = Graphics.FromImage(image);
 
-                Font font = new Font(FontFamily.GenericMonospace, 32, FontStyle.Bold, GraphicsUnit.Pixel);
+                Font font = new Font(FontFamily.GenericMonospace, 45, FontStyle.Bold, GraphicsUnit.Pixel);
                 SizeF textSize = graphic.MeasureString(addPictureText, font); //Resmin üzerine yazılacak yazı
                 Color color = Color.Red;
 
@@ -92,13 +91,14 @@ namespace Watermark.WebPublisher.BackgroundServices
                 graphic.Dispose();
 
                 //Mesajı işlediğimi bildiriyorum.
-                _channel.BasicAck( 
+                _channel.BasicAck(
                     deliveryTag: @event.DeliveryTag,
                     multiple: false
                     );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Hata: " + ex.Message);
             }
 
             return Task.CompletedTask;

@@ -4,11 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Watermark.WebPublisher.Models;
+using Watermark.WebPublisher.Services;
 
 namespace Watermark.WebPublisher
 {
@@ -28,6 +27,14 @@ namespace Watermark.WebPublisher
             {
                 options.UseInMemoryDatabase(databaseName: "VehicleDb");
             });
+
+            services.AddSingleton(serviceProvier => new ConnectionFactory()
+            {
+                Uri = new Uri("amqps://wgpkwzxn:m2DXQ3IKLkxBTvLTRIdwZdNk-PPjvpzi@baboon.rmq.cloudamqp.com/wgpkwzxn")
+            });
+
+            services.AddSingleton<RabbitMQClientService>();
+            services.AddSingleton<RabbitMQPublisher>();
 
             services.AddControllersWithViews();
         }

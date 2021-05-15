@@ -53,7 +53,7 @@ namespace Watermark.WebPublisher.Controllers
                 await using FileStream stream = new(path, FileMode.Create);
                 await ImageFile.CopyToAsync(stream); //Resmi yukarıdaki stream'e kopyala.
 
-                _rabbitMQPublisher.Publish(new ProductImageCreatedEvent //RabbitMQ'ya event fırlatıyorum.
+                _rabbitMQPublisher.Publish(new VehicleImageCreatedEvent //RabbitMQ'ya event fırlatıyorum.
                 {
                     ImageName = randomImageName
                 });

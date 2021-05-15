@@ -58,7 +58,7 @@ namespace Watermark.WebPublisher.Services
             return _channel;
         }
 
-        public void Dispose()
+        public void Dispose() //Uygulama kapandığında dispose olacak
         {
             _channel?.Close();
             _channel?.Dispose();

@@ -1,6 +1,6 @@
 ﻿namespace Watermark.WebPublisher.Services
 {
-    public class ProductImageCreatedEvent
+    public class VehicleImageCreatedEvent
     {
         public string ImageName { get; set; }
     }

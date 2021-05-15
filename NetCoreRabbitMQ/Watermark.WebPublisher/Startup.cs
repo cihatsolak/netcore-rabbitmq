@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using System;
+using Watermark.WebPublisher.BackgroundServices;
 using Watermark.WebPublisher.Models;
 using Watermark.WebPublisher.Services;
 
@@ -35,6 +36,8 @@ namespace Watermark.WebPublisher
 
             services.AddSingleton<RabbitMQClientService>();
             services.AddSingleton<RabbitMQPublisher>();
+
+            services.AddHostedService<ImageWatermakProcessBackgroundService>();
 
             services.AddControllersWithViews();
         }

@@ -12,7 +12,7 @@ namespace Watermark.WebPublisher.Services
             _rabbitMQClientService = rabbitMQClientService;
         }
 
-        public void Publish(ProductImageCreatedEvent productImageCreatedEvent)
+        public void Publish(VehicleImageCreatedEvent productImageCreatedEvent)
         {
             IModel channel = _rabbitMQClientService.Connect();
 

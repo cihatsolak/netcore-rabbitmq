@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Watermark.WebPublisher.Models
@@ -18,6 +19,6 @@ namespace Watermark.WebPublisher.Models
         public int Stock { get; set; }
 
         [StringLength(100)]
-        public string PictureUrl { get; set; }
+        public string ImageName { get; set; }
     }
 }

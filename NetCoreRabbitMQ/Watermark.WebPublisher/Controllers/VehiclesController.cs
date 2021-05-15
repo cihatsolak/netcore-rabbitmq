@@ -1,45 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Watermark.WebPublisher.Models;
+using Watermark.WebPublisher.Services;
 
 namespace Watermark.WebPublisher.Controllers
 {
     public class VehiclesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly RabbitMQPublisher _rabbitMQPublisher;
 
-        public VehiclesController(AppDbContext context)
+        public VehiclesController(AppDbContext context, RabbitMQPublisher rabbitMQPublisher)
         {
             _context = context;
+            _rabbitMQPublisher = rabbitMQPublisher;
         }
 
         // GET: Vehicles
         public async Task<IActionResult> Index()
         {
             return View(await _context.Vehicles.ToListAsync());
-        }
-
-        // GET: Vehicles/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var vehicle = await _context.Vehicles
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-
-            return View(vehicle);
         }
 
         // GET: Vehicles/Create
@@ -53,100 +38,33 @@ namespace Watermark.WebPublisher.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Brand,Price,Stock,PictureUrl")] Vehicle vehicle)
+        public async Task<IActionResult> Create([Bind("Id,Brand,Price,Stock,ImageName,ImageFile")] Vehicle vehicle, IFormFile ImageFile)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(vehicle);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(vehicle);
-        }
-
-        // GET: Vehicles/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
+                return View(vehicle);
             }
 
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle == null)
+            if (ImageFile is { Length: > 0 })
             {
-                return NotFound();
-            }
-            return View(vehicle);
-        }
+                string randomImageName = string.Concat(Guid.NewGuid(), Path.GetExtension(ImageFile.FileName)); //Path.GetExtension(vehicle.ImageFile.FileName) -> .jpg, .png
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", randomImageName);
 
-        // POST: Vehicles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Brand,Price,Stock,PictureUrl")] Vehicle vehicle)
-        {
-            if (id != vehicle.Id)
-            {
-                return NotFound();
-            }
+                await using FileStream stream = new(path, FileMode.Create);
+                await ImageFile.CopyToAsync(stream); //Resmi yukarıdaki stream'e kopyala.
 
-            if (ModelState.IsValid)
-            {
-                try
+                _rabbitMQPublisher.Publish(new ProductImageCreatedEvent //RabbitMQ'ya event fırlatıyorum.
                 {
-                    _context.Update(vehicle);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!VehicleExists(vehicle.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(vehicle);
-        }
+                    ImageName = randomImageName
+                });
 
-        // GET: Vehicles/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
+                vehicle.ImageName = randomImageName;
             }
 
-            var vehicle = await _context.Vehicles
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-
-            return View(vehicle);
-        }
-
-        // POST: Vehicles/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            _context.Vehicles.Remove(vehicle);
+            _context.Add(vehicle);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
 
-        private bool VehicleExists(int id)
-        {
-            return _context.Vehicles.Any(e => e.Id == id);
+            return RedirectToAction(nameof(Index));
         }
     }
 }
